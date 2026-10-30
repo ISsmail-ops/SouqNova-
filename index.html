@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SouqNova - Boutique en ligne</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f5f6fa;color:#20243a}
+header{background:white;padding:17px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.logo{font-size:27px;font-weight:bold;color:#5946d2}
+.logo span{color:#ff9f43}
+input{padding:12px;border:1px solid #ddd;border-radius:10px}
+button{padding:12px;border:0;border-radius:10px;background:#5946d2;color:white;font-weight:bold;cursor:pointer}
+nav{display:flex;gap:8px;padding:14px;overflow:auto}
+nav button{white-space:nowrap}
+.hero{margin:15px;padding:35px 22px;background:linear-gradient(120deg,#211b58,#6958e5);color:white;border-radius:20px}
+.hero h1{font-size:34px}
+.hero p{line-height:1.7}
+main{padding:15px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.card{background:white;border-radius:15px;overflow:hidden;padding-bottom:12px;text-align:center}
+.pic{height:140px;background:#eeedff;display:grid;place-items:center;font-size:60px}
+.card h3{font-size:16px}
+.price{color:#5946d2;font-weight:bold;font-size:19px}
+.card button{margin-top:10px}
+.cart{background:white;padding:18px;border-radius:15px;margin:20px 0}
+.cart p{border-bottom:1px solid #eee;padding:8px}
+footer{background:#171b31;color:white;text-align:center;padding:25px}
+@media(max-width:650px){.grid{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:27px}}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo">Souq<span>Nova</span></div>
+<input id="search" placeholder="Rechercher..." oninput="showProducts()">
+<button onclick="document.getElementById('cart').scrollIntoView()">🛒 Panier (<span id="count">0</span>)</button>
+</header>
+
+<nav>
+<button onclick="filter('Tout')">Tout</button>
+<button onclick="filter('Électronique')">📱 Électronique</button>
+<button onclick="filter('Mode')">👕 Mode</button>
+<button onclick="filter('Beauté')">✨ Beauté</button>
+<button onclick="filter('Maison')">🏠 Maison</button>
+<button onclick="filter('Sport')">🏋️ Sport</button>
+</nav>
+
+<section class="hero">
+<h1>Bienvenue chez SouqNova 🛍️</h1>
+<p>Tout ce que vous cherchez au même endroit ! Découvrez nos produits et profitez de nos offres.</p>
+<button onclick="document.getElementById('shop').scrollIntoView()">Découvrir nos produits</button>
+</section>
+
+<main>
+<h2 id="shop">Nos produits ⭐</h2>
+<div class="grid" id="products"></div>
+
+<div class="cart" id="cart">
+<h2>🛒 Votre panier</h2>
+<div id="items">Votre panier est vide.</div>
+<h3 id="total">Total : 0 DH</h3>
+
+<h2>Informations de livraison</h2>
+<input id="name" placeholder="Nom complet" style="width:100%;margin:5px 0">
+<input id="phone" placeholder="Téléphone" style="width:100%;margin:5px 0">
+<input id="address" placeholder="Ville et adresse complète" style="width:100%;margin:5px 0">
+<br><br>
+<button onclick="order()">Commander par WhatsApp</button>
+<p style="font-size:12px;color:#777">Paiement à la livraison selon disponibilité.</p>
+</div>
+</main>
+
+<footer>
+<h2>SouqNova</h2>
+<p>Votre boutique en ligne au Maroc 🇲🇦</p>
+<p>© 2026 SouqNova</p>
+</footer>
+
+<script>
+const products=[
+{id:1,n:"Écouteurs sans fil",c:"Électronique",p:149,e:"🎧"},
+{id:2,n:"Montre connectée",c:"Électronique",p:229,e:"⌚"},
+{id:3,n:"Sac tendance",c:"Mode",p:179,e:"👜"},
+{id:4,n:"Sneakers",c:"Mode",p:249,e:"👟"},
+{id:5,n:"Soin visage",c:"Beauté",p:119,e:"🧴"},
+{id:6,n:"Lampe décorative",c:"Maison",p:139,e:"💡"},
+{id:7,n:"Gourde sport",c:"Sport",p:89,e:"🥤"},
+{id:8,n:"Lunettes tendance",c:"Mode",p:99,e:"🕶️"}
+];
+
+let cart=[];
+let category="Tout";
+
+function showProducts(){
+let q=document.getElementById("search").value.toLowerCase();
+let list=products.filter(x=>(category==="Tout"||x.c===category)&&x.n.toLowerCase().includes(q));
+document.getElementById("products").innerHTML=list.map(x=>`
+<div class="card">
+<div class="pic">${x.e}</div>
+<h3>${x.n}</h3>
+<div class="price">${x.p} DH</div>
+<button onclick="add(${x.id})">Ajouter au panier</button>
+</div>`).join("");
+}
+
+function filter(c){category=c;showProducts()}
+
+function add(id){
+let x=cart.find(a=>a.id===id);
+if(x)x.q++;
+else cart.push({id:id,q:1});
+update();
+}
+
+function update(){
+document.getElementById("count").innerText=cart.reduce((s,x)=>s+x.q,0);
+let total=0;
+document.getElementById("items").innerHTML=cart.length?cart.map(x=>{
+let p=products.find(a=>a.id===x.id);
+total+=p.p*x.q;
+return `<p>${p.e} ${p.n} × ${x.q} — ${p.p*x.q} DH
+<button onclick="removeItem(${x.id})">−</button></p>`;
+}).join(""):"Votre panier est vide.";
+document.getElementById("total").innerText="Total : "+total+" DH";
+}
+
+function removeItem(id){
+let x=cart.find(a=>a.id===id);
+if(x){x.q--;if(x.q<=0)cart=cart.filter(a=>a.id!==id)}
+update();
+}
+
+function order(){
+if(!cart.length)return alert("Votre panier est vide.");
+let name=document.getElementById("name").value.trim();
+let phone=document.getElementById("phone").value.trim();
+let address=document.getElementById("address").value.trim();
+if(!name||!phone||!address)return alert("Remplissez toutes les informations.");
+
+let total=0;
+let details=cart.map(x=>{
+let p=products.find(a=>a.id===x.id);
+total+=p.p*x.q;
+return p.n+" x "+x.q+" = "+p.p*x.q+" DH";
+}).join("\n");
+
+let msg="Bonjour SouqNova ! Je souhaite commander :\n"+details+
+"\nTotal : "+total+" DH\nNom : "+name+
+"\nTéléphone : "+phone+"\nAdresse : "+address;
+
+window.open("https://wa.me/212619442418?text="+encodeURIComponent(msg),"_blank");
+}
+
+showProducts();
+update();
+</script>
+</body>
+</html>
